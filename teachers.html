@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Faculty & Subject Management - TimeTable Studio</title>
+  <meta name="description" content="Manage faculty instructors, subject quotas, theory/lab types, and workload across departments.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Ambient Glow Effects -->
+  <div class="bg-ambient">
+    <div class="ambient-orb ambient-orb-1"></div>
+    <div class="ambient-orb ambient-orb-2"></div>
+  </div>
+
+  <!-- Shared App Header -->
+  <header class="app-header"></header>
+
+  <!-- Main Content Wrapper -->
+  <main class="main-wrapper">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="page-title-group">
+        <h1>👩‍🏫 Faculty & Subject Management</h1>
+        <p>Assign professors, subjects, and weekly period quotas for automated scheduling</p>
+      </div>
+
+      <div class="header-controls">
+        <button onclick="TimeTableApp.resetSampleData(); loadTeachersTable();" class="btn btn-secondary">
+          🔄 Reload Defaults
+        </button>
+        <button onclick="confirmClearAll()" class="btn btn-danger btn-sm">
+          🗑️ Clear All
+        </button>
+      </div>
+    </div>
+
+    <!-- Add Teacher Form Card -->
+    <div class="card" style="margin-bottom: 2rem;">
+      <div class="card-title">
+        <span>➕</span>
+        <span>Add New Subject Assignment</span>
+      </div>
+
+      <form id="addTeacherForm" onsubmit="event.preventDefault(); handleAddTeacher();">
+        <div class="form-grid">
+          
+          <div class="form-group">
+            <label class="form-label" for="dept">Department</label>
+            <select id="dept" required>
+              <option value="">Select Dept</option>
+              <option value="CS">CS (Computer Science)</option>
+              <option value="BCA">BCA (Computer Applications)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="year">Academic Year</label>
+            <select id="year" required>
+              <option value="">Select Year</option>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="teacherName">Faculty Name</label>
+            <input type="text" id="teacherName" placeholder="e.g. Dr. A. Sharma" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="subject">Subject / Course</label>
+            <input type="text" id="subject" placeholder="e.g. Data Structures" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="type">Course Type</label>
+            <select id="type" required>
+              <option value="Theory">Theory Lecture</option>
+              <option value="Lab">Practical Lab</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="hours">Weekly Hours</label>
+            <input type="number" id="hours" min="1" max="15" value="4" required>
+          </div>
+
+          <div class="form-group">
+            <button type="submit" class="btn btn-primary" style="height: 44px;">
+              💾 Save Assignment
+            </button>
+          </div>
+
+        </div>
+      </form>
+    </div>
+
+    <!-- Faculty Table Card -->
+    <div class="card">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.25rem;">
+        <div class="card-title" style="margin-bottom: 0;">
+          <span>📋</span>
+          <span>Active Faculty Assignments (<span id="recordCount">0</span>)</span>
+        </div>
+
+        <!-- Filters -->
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+          <select id="filterDept" onchange="loadTeachersTable()" style="width: 140px; padding: 0.5rem 0.85rem; font-size: 0.85rem;">
+            <option value="">All Departments</option>
+            <option value="CS">CS Only</option>
+            <option value="BCA">BCA Only</option>
+          </select>
+
+          <select id="filterYear" onchange="loadTeachersTable()" style="width: 130px; padding: 0.5rem 0.85rem; font-size: 0.85rem;">
+            <option value="">All Years</option>
+            <option value="1">1st Year</option>
+            <option value="2">2nd Year</option>
+            <option value="3">3rd Year</option>
+          </select>
+
+          <input type="text" id="filterSearch" oninput="loadTeachersTable()" placeholder="🔍 Search teacher or subject..." style="width: 220px; padding: 0.5rem 0.85rem; font-size: 0.85rem;">
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 60px;">#</th>
+              <th>Department</th>
+              <th>Year</th>
+              <th>Faculty Instructor</th>
+              <th>Subject Name</th>
+              <th>Type</th>
+              <th>Weekly Hours</th>
+              <th style="width: 110px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="teacherTableBody">
+            <!-- Dynamically Loaded -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- App Footer -->
+  <footer class="app-footer">
+    <p>TimeTable Studio • Faculty Workload Management Module</p>
+  </footer>
+
+  <script src="app.js"></script>
+  <script>
+    // Authentication & Header
+    TimeTableApp.checkAuth(true);
+    TimeTableApp.renderNavbar('teachers');
+
+    function loadTeachersTable() {
+      const deptFilter = document.getElementById("filterDept").value;
+      const yearFilter = document.getElementById("filterYear").value;
+      const search = document.getElementById("filterSearch").value.toLowerCase().trim();
+
+      let teachers = TimeTableApp.getTeachers();
+
+      if (deptFilter) {
+        teachers = teachers.filter(t => t.dept === deptFilter);
+      }
+      if (yearFilter) {
+        teachers = teachers.filter(t => String(t.year) === String(yearFilter));
+      }
+      if (search) {
+        teachers = teachers.filter(t => 
+          (t.teacherName && t.teacherName.toLowerCase().includes(search)) ||
+          (t.subject && t.subject.toLowerCase().includes(search))
+        );
+      }
+
+      document.getElementById("recordCount").textContent = teachers.length;
+      const tbody = document.getElementById("teacherTableBody");
+
+      if (teachers.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" style="padding: 3rem 1rem; color: var(--text-dim);">
+              <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔍</div>
+              No faculty records matching filter. Click <b>"Reload Defaults"</b> above to populate sample faculty.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      let html = "";
+      teachers.forEach((t, i) => {
+        const typeBadge = t.type === 'Lab' 
+          ? `<span class="badge badge-lab">🧪 Lab</span>` 
+          : `<span class="badge badge-theory">📖 Theory</span>`;
+
+        html += `
+          <tr>
+            <td><b style="color: var(--text-muted);">${i + 1}</b></td>
+            <td><span class="badge badge-dept">${t.dept}</span></td>
+            <td><b>Year ${t.year}</b></td>
+            <td style="font-weight: 600; color: #fff;">${t.teacherName}</td>
+            <td style="color: var(--accent-cyan); font-weight: 500;">${t.subject}</td>
+            <td>${typeBadge}</td>
+            <td><span style="font-family: 'Outfit'; font-weight: 700; color: #fff;">${t.hours}</span> hrs</td>
+            <td>
+              <button onclick="handleDelete(${i})" class="btn btn-danger btn-sm" title="Remove assignment">
+                🗑️ Delete
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    function handleAddTeacher() {
+      const dept = document.getElementById("dept").value;
+      const year = document.getElementById("year").value;
+      const teacherName = document.getElementById("teacherName").value.trim();
+      const subject = document.getElementById("subject").value.trim();
+      const type = document.getElementById("type").value;
+      const hours = document.getElementById("hours").value;
+
+      if (TimeTableApp.addTeacher(dept, year, teacherName, subject, type, hours)) {
+        document.getElementById("teacherName").value = "";
+        document.getElementById("subject").value = "";
+        document.getElementById("teacherName").focus();
+        loadTeachersTable();
+      }
+    }
+
+    function handleDelete(index) {
+      if (confirm("Delete this subject assignment?")) {
+        TimeTableApp.deleteTeacher(index);
+        loadTeachersTable();
+      }
+    }
+
+    function confirmClearAll() {
+      if (confirm("Are you sure you want to delete ALL faculty records? This action cannot be undone.")) {
+        TimeTableApp.deleteAllTeachers();
+        loadTeachersTable();
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", loadTeachersTable);
+  </script>
+</body>
+</html>

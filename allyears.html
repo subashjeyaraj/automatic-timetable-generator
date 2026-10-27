@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Years Master Timetable - TimeTable Studio</title>
+  <meta name="description" content="Master institutional schedule encompassing Computer Science and Computer Applications across all academic years.">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</head>
+<body>
+
+  <!-- Ambient Glow Effects -->
+  <div class="bg-ambient">
+    <div class="ambient-orb ambient-orb-1"></div>
+    <div class="ambient-orb ambient-orb-2"></div>
+  </div>
+
+  <!-- Shared App Header -->
+  <header class="app-header"></header>
+
+  <!-- Main Content Wrapper -->
+  <main class="main-wrapper">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="page-title-group">
+        <h1>📚 All Years Master Schedule</h1>
+        <p>Comprehensive institutional schedule across CS & BCA (Years 1, 2, and 3)</p>
+      </div>
+
+      <div class="header-controls">
+        <button onclick="generateAllYears()" class="btn btn-primary">
+          ⚡ Regenerate Master
+        </button>
+        <button onclick="downloadMasterImage()" class="btn btn-secondary">
+          📥 Download Master PNG
+        </button>
+        <button onclick="window.print()" class="btn btn-secondary">
+          🖨️ Print
+        </button>
+      </div>
+    </div>
+
+    <!-- Master Timetable Container -->
+    <div id="downloadArea" class="export-canvas">
+      <div class="export-canvas-header">
+        <div>
+          <h2>🏛️ Institutional Master Schedule Matrix</h2>
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.2rem;">
+            Computer Science (CS) & Computer Applications (BCA) • 6 Day Orders System
+          </p>
+        </div>
+        <span class="badge badge-dept">Full Campus Sync</span>
+      </div>
+
+      <div id="masterTablesBox">
+        <!-- Tables injected by JavaScript -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- App Footer -->
+  <footer class="app-footer">
+    <p>TimeTable Studio • Institutional Master Matrix</p>
+  </footer>
+
+  <script src="app.js"></script>
+  <script>
+    // Authentication & Header
+    TimeTableApp.checkAuth(true);
+    TimeTableApp.renderNavbar('allyears');
+
+    function generateAllYears() {
+      const depts = ["CS", "BCA"];
+      const years = ["1", "2", "3"];
+      const masterTimetable = {};
+      const container = document.getElementById("masterTablesBox");
+
+      let html = "";
+
+      depts.forEach(dept => {
+        years.forEach(year => {
+          const teachers = TimeTableApp.getTeachers(dept, year);
+          if (teachers.length === 0) return;
+
+          const tt = TimeTableApp.createTimetableForClass(dept, year, teachers);
+
+          // Save each day order in master structure
+          TimeTableApp.DAY_ORDERS.forEach(day => {
+            const key = `${dept}-${year}-${day}`;
+            masterTimetable[key] = tt[day];
+          });
+
+          // Also save per-class key
+          localStorage.setItem(`tt_${dept}_${year}`, JSON.stringify(tt));
+
+          // Render section
+          const deptLabel = dept === 'CS' ? 'Computer Science (CS)' : 'Computer Applications (BCA)';
+          html += `
+            <div style="margin-bottom: 2.5rem;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; border-left: 4px solid var(--primary); padding-left: 0.75rem;">
+                <h3 style="font-family: 'Outfit'; font-size: 1.25rem; color: #fff;">
+                  ${deptLabel} — Year ${year}
+                </h3>
+                <span class="badge badge-theory">P1 to P6 Slots</span>
+              </div>
+
+              <div class="table-responsive">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="width: 140px; text-align: left; padding-left: 1rem;">Day Order</th>
+                      <th>P1 <br><small style="color: var(--text-dim); font-weight: normal;">09:30-10:30</small></th>
+                      <th>P2 <br><small style="color: var(--text-dim); font-weight: normal;">10:30-11:30</small></th>
+                      <th>P3 <br><small style="color: var(--text-dim); font-weight: normal;">11:45-12:45</small></th>
+                      <th>P4 <br><small style="color: var(--text-dim); font-weight: normal;">01:30-02:30</small></th>
+                      <th>P5 <br><small style="color: var(--text-dim); font-weight: normal;">02:30-03:30</small></th>
+                      <th>P6 <br><small style="color: var(--text-dim); font-weight: normal;">03:30-04:30</small></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+          `;
+
+          TimeTableApp.DAY_ORDERS.forEach(day => {
+            html += `
+              <tr>
+                <td style="text-align: left; padding-left: 1rem; font-weight: 700; color: #fff; background: rgba(30, 41, 59, 0.4);">
+                  ${day}
+                </td>
+            `;
+
+            const periods = tt[day] || [];
+            periods.forEach(p => {
+              if (!p || p.subject === "FREE") {
+                html += `
+                  <td class="cell-free">
+                    <div class="period-cell">
+                      <div class="period-sub" style="color: var(--text-dim);">FREE</div>
+                      <span class="badge badge-free">Free</span>
+                    </div>
+                  </td>
+                `;
+              } else {
+                const badgeClass = p.type === 'Lab' ? 'badge-lab' : 'badge-theory';
+                html += `
+                  <td>
+                    <div class="period-cell">
+                      <div class="period-sub">${p.subject}</div>
+                      <div class="period-teacher">${p.teacherName || p.teacher}</div>
+                      <span class="badge ${badgeClass}">${p.type}</span>
+                    </div>
+                  </td>
+                `;
+              }
+            });
+
+            html += `</tr>`;
+          });
+
+          html += `
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `;
+        });
+      });
+
+      // Save complete master map
+      localStorage.setItem("timetable", JSON.stringify(masterTimetable));
+
+      container.innerHTML = html;
+      TimeTableApp.showToast("All Years Master Schedule generated & synced!", "success");
+    }
+
+    function downloadMasterImage() {
+      TimeTableApp.downloadCanvasImage("downloadArea", "All_Years_Master_Timetable.png");
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      // Check if timetable is already cached
+      const cached = localStorage.getItem("timetable");
+      if (cached && Object.keys(JSON.parse(cached)).length > 0) {
+        // Render from stored
+        renderFromExisting();
+      } else {
+        generateAllYears();
+      }
+    });
+
+    function renderFromExisting() {
+      // Re-generate to guarantee fresh view matching current teachers
+      generateAllYears();
+    }
+  </script>
+</body>
+</html>

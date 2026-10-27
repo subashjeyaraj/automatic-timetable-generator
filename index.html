@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TimeTable Studio - Intelligent Academic Scheduling & Faculty Management</title>
+  <meta name="description" content="Lightweight client-side automated timetable generator and absent faculty adjustment system with Day Order support.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Ambient Glow Effects -->
+  <div class="bg-ambient">
+    <div class="ambient-orb ambient-orb-1"></div>
+    <div class="ambient-orb ambient-orb-2"></div>
+  </div>
+
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <div style="margin-bottom: 1.5rem;">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">⏱️</div>
+        <h1 style="font-family: 'Outfit', sans-serif; font-size: 1.85rem; font-weight: 700; color: #fff;">
+          TimeTable Studio
+        </h1>
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 0.35rem;">
+          Lightweight, automated college schedule generation & substitute adjustment
+        </p>
+      </div>
+
+      <!-- Quick 1-Click Access -->
+      <div style="background: rgba(99, 102, 241, 0.12); border: 1px dashed rgba(99, 102, 241, 0.35); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.5rem;">
+        <div style="font-size: 0.8rem; font-weight: 600; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.4rem;">
+          Instant Access
+        </div>
+        <button type="button" onclick="TimeTableApp.demoLogin()" class="btn btn-primary" style="width: 100%;">
+          ⚡ 1-Click Demo Login (Admin)
+        </button>
+      </div>
+
+      <div class="auth-tabs">
+        <button id="tabLoginBtn" type="button" class="auth-tab active" onclick="switchAuthTab('login')">
+          Sign In
+        </button>
+        <button id="tabRegisterBtn" type="button" class="auth-tab" onclick="switchAuthTab('register')">
+          Register Staff
+        </button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" onsubmit="event.preventDefault(); handleLogin();" style="display: block;">
+        <div class="form-group" style="margin-bottom: 1rem; text-align: left;">
+          <label class="form-label" for="loginId">Staff ID</label>
+          <input type="text" id="loginId" placeholder="e.g. admin" required autocomplete="username">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem; text-align: left;">
+          <label class="form-label" for="loginPass">Password</label>
+          <input type="password" id="loginPass" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">
+          🔐 Sign In to Portal
+        </button>
+
+        <p style="font-size: 0.82rem; color: var(--text-dim); margin-top: 1rem;">
+          Default demo credentials: ID <code>admin</code> / Password <code>admin</code>
+        </p>
+      </form>
+
+      <!-- Register Form -->
+      <form id="registerForm" onsubmit="event.preventDefault(); handleRegister();" style="display: none;">
+        <div class="form-group" style="margin-bottom: 1rem; text-align: left;">
+          <label class="form-label" for="regStaffId">Staff ID / Code</label>
+          <input type="text" id="regStaffId" placeholder="e.g. STF-2026" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1rem; text-align: left;">
+          <label class="form-label" for="regStaffName">Full Name</label>
+          <input type="text" id="regStaffName" placeholder="e.g. Prof. R. Sharma" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem; text-align: left;">
+          <label class="form-label" for="regStaffPass">Password</label>
+          <input type="password" id="regStaffPass" placeholder="Create a secure password" required>
+        </div>
+
+        <button type="submit" class="btn btn-success" style="width: 100%;">
+          ✨ Complete Staff Registration
+        </button>
+      </form>
+
+      <!-- System Highlights -->
+      <div style="margin-top: 2rem; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem; display: flex; justify-content: center; gap: 1rem; font-size: 0.78rem; color: var(--text-dim);">
+        <span>⚡ 100% Client-Side</span>
+        <span>•</span>
+        <span>💾 LocalStorage Sync</span>
+        <span>•</span>
+        <span>🌐 GitHub Ready</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    function switchAuthTab(mode) {
+      const loginTab = document.getElementById("tabLoginBtn");
+      const regTab = document.getElementById("tabRegisterBtn");
+      const loginForm = document.getElementById("loginForm");
+      const regForm = document.getElementById("registerForm");
+
+      if (mode === 'login') {
+        loginTab.classList.add("active");
+        regTab.classList.remove("active");
+        loginForm.style.display = "block";
+        regForm.style.display = "none";
+      } else {
+        regTab.classList.add("active");
+        loginTab.classList.remove("active");
+        regForm.style.display = "block";
+        loginForm.style.display = "none";
+      }
+    }
+
+    function handleLogin() {
+      const id = document.getElementById("loginId").value.trim();
+      const pass = document.getElementById("loginPass").value.trim();
+      TimeTableApp.login(id, pass);
+    }
+
+    function handleRegister() {
+      const id = document.getElementById("regStaffId").value.trim();
+      const name = document.getElementById("regStaffName").value.trim();
+      const pass = document.getElementById("regStaffPass").value.trim();
+
+      if (TimeTableApp.registerStaff(id, name, pass)) {
+        switchAuthTab('login');
+        document.getElementById("loginId").value = id;
+        document.getElementById("loginPass").focus();
+      }
+    }
+
+    // If user is already authenticated, check or let them enter directly
+    window.addEventListener("DOMContentLoaded", () => {
+      const logged = TimeTableApp.getLoggedUser();
+      if (logged) {
+        // Option to go directly to dashboard
+        const container = document.querySelector(".auth-card");
+        const banner = document.createElement("div");
+        banner.style.marginBottom = "1rem";
+        banner.innerHTML = `
+          <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 0.75rem; font-size: 0.85rem; color: #6ee7b7; display: flex; align-items: center; justify-content: space-between;">
+            <span>Logged in as <b>${logged.name}</b></span>
+            <a href="dashboard.html" class="btn btn-success btn-sm">Enter Dashboard →</a>
+          </div>
+        `;
+        container.insertBefore(banner, container.children[1]);
+      }
+    });
+  </script>
+</body>
+</html>

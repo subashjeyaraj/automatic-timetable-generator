@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - TimeTable Studio</title>
+  <meta name="description" content="Central administrative dashboard for automated timetable scheduling and faculty management.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Ambient Glow Effects -->
+  <div class="bg-ambient">
+    <div class="ambient-orb ambient-orb-1"></div>
+    <div class="ambient-orb ambient-orb-2"></div>
+  </div>
+
+  <!-- Shared App Header -->
+  <header class="app-header"></header>
+
+  <!-- Main Content Wrapper -->
+  <main class="main-wrapper">
+
+    <!-- Page Header & Greeting -->
+    <div class="page-header">
+      <div class="page-title-group">
+        <h1 id="welcomeGreeting">📊 Command Center</h1>
+        <p>Automated timetable planning, faculty workload distribution & substitution matrix</p>
+      </div>
+
+      <div class="header-controls">
+        <button onclick="TimeTableApp.resetSampleData(); updateStats();" class="btn btn-secondary">
+          🔄 Reset Sample Data
+        </button>
+        <a href="weekly.html" class="btn btn-primary">
+          ✨ Generate Schedule
+        </a>
+      </div>
+    </div>
+
+    <!-- KPI / Statistics Banner -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon" style="color: var(--accent-cyan); background: rgba(6, 182, 212, 0.15); border-color: rgba(6, 182, 212, 0.3);">
+          👩‍🏫
+        </div>
+        <div class="stat-info">
+          <div class="stat-val" id="statTeachers">0</div>
+          <div class="stat-lbl">Active Faculty</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="color: var(--primary); background: rgba(99, 102, 241, 0.15); border-color: rgba(99, 102, 241, 0.3);">
+          📚
+        </div>
+        <div class="stat-info">
+          <div class="stat-val" id="statSubjects">0</div>
+          <div class="stat-lbl">Unique Subjects</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="color: var(--accent-emerald); background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.3);">
+          🏛️
+        </div>
+        <div class="stat-info">
+          <div class="stat-val" id="statDepts">2</div>
+          <div class="stat-lbl">Departments (CS & BCA)</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="color: var(--accent-amber); background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3);">
+          🗓️
+        </div>
+        <div class="stat-info">
+          <div class="stat-val">6</div>
+          <div class="stat-lbl">Day Orders (P1–P6)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Core Module Cards Grid -->
+    <div class="action-cards-grid">
+
+      <!-- Card 1: Teachers -->
+      <a href="teachers.html" class="action-card">
+        <div>
+          <div class="action-card-header">
+            <div class="action-card-icon" style="color: var(--accent-cyan);">
+              👩‍🏫
+            </div>
+            <span class="badge badge-dept">Module 01</span>
+          </div>
+          <div class="action-card-title">Faculty & Subjects</div>
+          <div class="action-card-desc">
+            Manage instructors, curriculum courses, Theory vs Lab allocation, and weekly hour quotas across years.
+          </div>
+        </div>
+        <div class="action-card-footer">
+          <span>Manage Faculty</span>
+          <span>→</span>
+        </div>
+      </a>
+
+      <!-- Card 2: Weekly Timetable -->
+      <a href="weekly.html" class="action-card">
+        <div>
+          <div class="action-card-header">
+            <div class="action-card-icon" style="color: var(--primary);">
+              📅
+            </div>
+            <span class="badge badge-theory">Module 02</span>
+          </div>
+          <div class="action-card-title">Weekly Timetable</div>
+          <div class="action-card-desc">
+            Generate and visualize 6-day order schedules for any specific department and year with high-res PNG export.
+          </div>
+        </div>
+        <div class="action-card-footer">
+          <span>Generate Weekly</span>
+          <span>→</span>
+        </div>
+      </a>
+
+      <!-- Card 3: All Years Master -->
+      <a href="allyears.html" class="action-card">
+        <div>
+          <div class="action-card-header">
+            <div class="action-card-icon" style="color: var(--accent-emerald);">
+              📚
+            </div>
+            <span class="badge badge-dept">Module 03</span>
+          </div>
+          <div class="action-card-title">All Years Master Schedule</div>
+          <div class="action-card-desc">
+            Complete institutional overview across CS & BCA (Years 1, 2, and 3). 1-Click batch image download.
+          </div>
+        </div>
+        <div class="action-card-footer">
+          <span>View Master Tables</span>
+          <span>→</span>
+        </div>
+      </a>
+
+      <!-- Card 4: Absent Adjustment -->
+      <a href="absent.html" class="action-card">
+        <div>
+          <div class="action-card-header">
+            <div class="action-card-icon" style="color: var(--accent-amber);">
+              🚫
+            </div>
+            <span class="badge badge-substitute">Module 04</span>
+          </div>
+          <div class="action-card-title">Absent Faculty Adjustment</div>
+          <div class="action-card-desc">
+            Smart substitution engine. Automatically matches available peer staff to cover absent periods without collisions.
+          </div>
+        </div>
+        <div class="action-card-footer">
+          <span>Calculate Adjustments</span>
+          <span>→</span>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- Quick Info / Architecture Banner -->
+    <div class="card" style="margin-top: 2.5rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.5rem; background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));">
+      <div>
+        <div style="font-family: 'Outfit', sans-serif; font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 0.35rem;">
+          ⚡ Lightweight & 100% Client-Side Engine
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 750px;">
+          This web application operates entirely within your browser using modern Web APIs and LocalStorage. No server setup, Node.js, or SQL database required. Seamlessly deployable on <b>GitHub Pages</b> in 1 click.
+        </p>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem;">
+        <a href="allyears.html" class="btn btn-secondary">
+          👁️ Quick Preview Master
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- App Footer -->
+  <footer class="app-footer">
+    <p>TimeTable Studio • Modern Automated Academic Scheduling • Open Source on GitHub</p>
+  </footer>
+
+  <script src="app.js"></script>
+  <script>
+    // Page Protection & Header Rendering
+    TimeTableApp.checkAuth(true);
+    TimeTableApp.renderNavbar('dashboard');
+
+    function updateStats() {
+      const teachers = TimeTableApp.getTeachers();
+      document.getElementById("statTeachers").textContent = teachers.length;
+
+      const uniqueSubs = new Set(teachers.map(t => t.subject));
+      document.getElementById("statSubjects").textContent = uniqueSubs.size;
+
+      const user = TimeTableApp.getLoggedUser();
+      if (user && user.name) {
+        document.getElementById("welcomeGreeting").innerHTML = `📊 Welcome, ${user.name}`;
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", updateStats);
+  </script>
+</body>
+</html>
